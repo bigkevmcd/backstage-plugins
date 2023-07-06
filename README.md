@@ -1,10 +1,5 @@
 # [Backstage](https://backstage.io)
 
-This is your newly scaffolded Backstage App, Good Luck!
+This contains some not-yet-ready-for-production plugins.
 
-To start the app, run:
-
-```sh
-yarn install
-yarn dev
-```
+- [CAPI Cluster Provider](plugins/catalog-backend-module-capi)
