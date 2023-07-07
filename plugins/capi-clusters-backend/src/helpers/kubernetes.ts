@@ -18,7 +18,7 @@ import { Config } from '@backstage/config';
 import { CustomObjectsApi, KubeConfig, KubernetesListObject } from '@kubernetes/client-node';
 import { Logger } from 'winston';
 import { getCAPIClusterFromKubernetesConfig } from './config';
-import { Cluster } from './types';
+import { Cluster } from '../types';
 import { kubeApiResponseHandler } from './utils';
 
 export const getCustomObjectsApi = (

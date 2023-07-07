@@ -37,7 +37,7 @@ import {
 } from '../constants';
 import { readProviderConfigs } from '../helpers/config';
 import { clusterApiClient, getCAPIClusters } from '../helpers/kubernetes';
-import { Cluster, ProviderConfig } from '../helpers/types';
+import { Cluster, ProviderConfig } from '../types';
 import { CustomObjectsApi } from '@kubernetes/client-node';
 
 // CAPI Clustructure infrastructureRef is an ObjectReference which allows Kind to be omitted.

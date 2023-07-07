@@ -1,6 +1,6 @@
-# Catalog Backend Module for Cluster API
+# Cluster API Backend
 
-This is an extension module to the plugin-catalog-backend plugin, with an entity provider to read CAPI clusters as Backstage Entities.
+This provides a backend for CAPI Clusters.
 
 ![List of CAPI Clusters as Resourcess](./cluster_resources.png)
 
@@ -36,13 +36,13 @@ kubernetes:
 ### Installation
 
 ```console
-yarn workspace backend add @bigkevmcd/catalog-backend-module-capi
+yarn workspace backend add @bigkevmcd/capi-clusters-backend
 ```
 
 You will need to import the Provider to `packages/backend/src/plugins/catalog.ts`
 
 ```typescript
-import { CAPIClusterProvider } from '@bigkevmcd/catalog-backend-module-capi';
+import { CAPIClusterProvider } from '@bigkevmcd/capi-clusters-backend';
 
 export default async function createPlugin(
   env: PluginEnvironment,

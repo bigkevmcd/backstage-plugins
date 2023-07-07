@@ -16,7 +16,7 @@
 
 import { readTaskScheduleDefinitionFromConfig } from '@backstage/backend-tasks';
 import { Config } from '@backstage/config';
-import { ProviderConfig, ProviderDefaults } from './types';
+import { ProviderConfig, ProviderDefaults } from '../types';
 
 const CLUSTERS_PATH = 'kubernetes.clusterLocatorMethods';
 const DEFAULT_PROVIDER_ID = 'default';
