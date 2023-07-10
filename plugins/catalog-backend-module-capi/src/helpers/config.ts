@@ -21,19 +21,19 @@ import { ProviderConfig, ProviderDefaults } from './types';
 const CLUSTERS_PATH = 'kubernetes.clusterLocatorMethods';
 const DEFAULT_PROVIDER_ID = 'default';
 
-// Find the configuration for the named Hub cluster in the set of Kubernetes
+// Find the configuration for the named cluster in the set of Kubernetes
 // clusters declared in the system.
-export const getCAPIClusterFromKubernetesConfig = (hubName: string, config: Config): Config => {
+export const getClusterConfigByName = (name: string, config: Config): Config => {
   const cluster = config
     .getConfigArray(CLUSTERS_PATH)
     .flatMap(method => method.getOptionalConfigArray('clusters') || [])
     .find(
       listCluster =>
-        listCluster.getString('name') === hubName,
+        listCluster.getString('name') === name,
     );
 
   if (!cluster) {
-    throw new Error(`CAPI hub cluster ${hubName} not defined in kubernetes config`);
+    throw new Error(`Cluster ${name} not defined in kubernetes config`);
   }
 
   return cluster;

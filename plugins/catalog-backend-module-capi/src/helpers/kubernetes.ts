@@ -17,29 +17,26 @@
 import { Config } from '@backstage/config';
 import { CustomObjectsApi, KubeConfig, KubernetesListObject } from '@kubernetes/client-node';
 import { Logger } from 'winston';
-import { getCAPIClusterFromKubernetesConfig } from './config';
+import { getClusterConfigByName } from './config';
 import { Cluster } from './types';
 import { kubeApiResponseHandler } from './utils';
 
-export const getCustomObjectsApi = (
-  clusterConfig: Config,
-  logger: Logger,
-): CustomObjectsApi => {
-  const clusterToken = clusterConfig.getOptionalString('serviceAccountToken');
+const newKubeConfigFromConfig = (config: Config, logger: Logger): KubeConfig => {
+  const clusterToken = config.getOptionalString('serviceAccountToken');
   const kubeConfig = new KubeConfig();
 
   if (!clusterToken) {
     logger.info('Using default kubernetes config');
     kubeConfig.loadFromDefault();
-    return kubeConfig.makeApiClient(CustomObjectsApi);
+    return kubeConfig;
   }
 
   logger.info('Loading kubernetes config from config file');
   const cluster = {
-    name: clusterConfig.getString('name'),
-    server: clusterConfig.getString('url'),
-    skipTLSVerify: clusterConfig.getOptionalBoolean('skipTLSVerify') ?? false,
-    caData: clusterConfig.getOptionalString('caData'),
+    name: config.getString('name'),
+    server: config.getString('url'),
+    skipTLSVerify: config.getOptionalBoolean('skipTLSVerify') ?? false,
+    caData: config.getOptionalString('caData'),
   };
 
   const user = {
@@ -60,19 +57,21 @@ export const getCustomObjectsApi = (
     currentContext: context.name,
   });
 
-  return kubeConfig.makeApiClient(CustomObjectsApi);
+  return kubeConfig;
 };
 
 /**
- * Get a client that can be used to communicate with the cluster that contains CAPI clusters.
- * @param config 
- * @param logger 
- * @returns CustomObjectsApi that can be used to communicate with the Hub.
+ * Get a KubeConfig for the named cluster from the clusterLocator data.
+ * @param name name of the cluster to get a KubeConfig for
+ * @param rootConfig the Config to parse the data from
+ * @param logger
+ * @returns KubeConfig usable to access the cluster
  */
-export const clusterApiClient = (hubClusterName: string, config: Config, logger: Logger) => {
-  const clusterConfig = getCAPIClusterFromKubernetesConfig(hubClusterName, config);
-  
-  return getCustomObjectsApi(clusterConfig, logger);
+
+export const getKubeConfigForCluster = (name: string, rootConfig: Config, logger: Logger): KubeConfig => {
+  const clusterConfig = getClusterConfigByName(name, rootConfig);
+
+  return newKubeConfigFromConfig(clusterConfig, logger);
 };
 
 /**

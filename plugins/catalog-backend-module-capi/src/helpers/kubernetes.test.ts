@@ -16,9 +16,7 @@
 
 import { ConfigReader } from '@backstage/config';
 import {
-    getCustomObjectsApi,
-    clusterApiClient,
-    getCAPIClusters,
+    getCAPIClusters, getKubeConfigForCluster,
 } from './kubernetes';
 import { createLogger } from 'winston';
 import transports from 'winston/lib/winston/transports';
@@ -29,41 +27,8 @@ const logger = createLogger({
     transports: [new transports.Console({ silent: true })],
 });
 
-describe('getCustomObjectsApi', () => {
-    it('should use the default config if there is no service account token configured', () => {
-        process.env.KUBECONFIG = `${__dirname}/fixtures/kubeconfig.yaml`;
-        const clusterConfig = new ConfigReader({
-            name: 'cluster1',
-        });
-
-        const result = getCustomObjectsApi(clusterConfig, logger);
-
-        expect(result.basePath).toBe('http://example.com');
-        // These fields aren't on the type but are there
-        const auth = (result as any).authentications.default;
-        expect(auth.clusters[0].name).toBe('default-cluster');
-        expect(auth.users[0].token).toBeUndefined();
-    });
-
-    it('should use the provided config in the returned api client', () => {
-        const clusterConfig = new ConfigReader({
-            name: 'cluster1',
-            serviceAccountToken: 'TOKEN',
-            url: 'http://cluster.com',
-        });
-
-        const result = getCustomObjectsApi(clusterConfig, logger);
-
-        expect(result.basePath).toBe('http://cluster.com');
-        // These fields aren't on the type but are there
-        const auth = (result as any).authentications.default;
-        expect(auth.clusters[0].name).toBe('cluster1');
-        expect(auth.users[0].token).toBe('TOKEN');
-    });
-});
-
-describe('clusterApiClient', () => {
-    it('should return an api client configured with the data from the kubernetes config', () => {
+describe('getKubeConfigForCluster', () => {
+    it('gets the configured cluster details', () => {
         const config = new ConfigReader({
             kubernetes: {
                 clusterLocatorMethods: [
@@ -71,9 +36,10 @@ describe('clusterApiClient', () => {
                         type: 'config',
                         clusters: [
                             {
-                                name: 'cluster2',
-                                serviceAccountToken: 'TOKEN',
-                                url: 'http://cluster2.com',
+                                name: 'cluster1',
+                                serviceAccountToken: 'ABCDEFG',
+                                url: 'http://192.168.0.5:9000/',
+                                caData: 'TESTING-CA',
                             },
                         ],
                     },
@@ -81,12 +47,37 @@ describe('clusterApiClient', () => {
             },
         });
 
-        const result = clusterApiClient('cluster2', config, logger);
+        const kubeConfig = getKubeConfigForCluster('cluster1', config, logger);
 
-        expect(result.basePath).toBe('http://cluster2.com');
-        // These fields aren't on the type but are there
-        const auth = (result as any).authentications.default;
-        expect(auth.clusters[0].name).toBe('cluster2');
+        expect(kubeConfig.contexts).toEqual([
+            {
+                cluster: 'cluster1',
+                name: 'cluster1',
+                user: 'backstage',
+            },
+        ]);
+        expect(kubeConfig.clusters).toEqual([
+            {
+                caData: 'TESTING-CA',
+                name: 'cluster1',
+                server: 'http://192.168.0.5:9000/',
+                skipTLSVerify: false,
+            },
+        ]);
+        expect(kubeConfig.currentContext).toEqual('cluster1');
+        expect(kubeConfig.contexts).toEqual([
+            {
+                cluster: 'cluster1',
+                name: 'cluster1',
+                user: 'backstage',
+            },
+        ]);
+        expect(kubeConfig.users).toEqual([
+            {
+                name: 'backstage',
+                token: 'ABCDEFG',
+            },
+        ]);
     });
 });
 

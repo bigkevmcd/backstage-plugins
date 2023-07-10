@@ -2823,6 +2823,15 @@
     luxon "^3.0.0"
     react-use "^17.2.4"
 
+"@backstage/plugin-kubernetes-common@^0.6.4":
+  version "0.6.4"
+  resolved "https://registry.yarnpkg.com/@backstage/plugin-kubernetes-common/-/plugin-kubernetes-common-0.6.4.tgz#a3750706c9bb78b067b722e9f1f101bd0a72dbf3"
+  integrity sha512-bTqyqbht5rRE2ZhailHK7kCvT1E12zgVNmzHTjuL7J7afOHy4oAZRebb7gi3DVHCWJjnZkHkHUcZ8wKE5txkqA==
+  dependencies:
+    "@backstage/catalog-model" "^1.4.0"
+    "@backstage/plugin-permission-common" "^0.7.6"
+    "@kubernetes/client-node" "0.18.1"
+
 "@backstage/plugin-org@^0.6.9":
   version "0.6.9"
   resolved "https://registry.yarnpkg.com/@backstage/plugin-org/-/plugin-org-0.6.9.tgz#30ab9a564af32123c370084a3ea575cfc1b064a4"

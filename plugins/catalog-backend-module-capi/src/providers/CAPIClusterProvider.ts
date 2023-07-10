@@ -35,15 +35,19 @@ import {
   ANNOTATION_CAPI_CLUSTER_TAGS,
   ANNOTATION_CAPI_PROVIDER
 } from '../constants';
-import { readProviderConfigs } from '../helpers/config';
-import { clusterApiClient, getCAPIClusters } from '../helpers/kubernetes';
+import { getKubeConfigForCluster, readProviderConfigs } from '../helpers';
+import { getCAPIClusters } from '../helpers';
 import { Cluster, ProviderConfig } from '../helpers/types';
-import { CustomObjectsApi } from '@kubernetes/client-node';
+import { CoreV1Api, CustomObjectsApi, KubeConfig } from '@kubernetes/client-node';
+import { getClusterKubeConfig } from '../helpers';
+import { ANNOTATION_KUBERNETES_API_SERVER, ANNOTATION_KUBERNETES_API_SERVER_CA, ANNOTATION_KUBERNETES_AUTH_PROVIDER } from '@backstage/plugin-kubernetes-common';
 
 // CAPI Clustructure infrastructureRef is an ObjectReference which allows Kind to be omitted.
 const capiClusterProvider = (cluster: Cluster): string => {
   return cluster.spec.infrastructureRef?.kind ?? '';
 };
+
+const clusterName = (cluster: Cluster): string => `${cluster.metadata?.namespace}/${cluster.metadata?.name}`;
 
 const clusterAnnotations = (cluster: Cluster): {
   lifecycle?: string;
@@ -79,7 +83,8 @@ type ProviderOptions = {
  * Use `CAPIClusterProvider.fromConfig(...)` to create instances.
  */
 export class CAPIClusterProvider implements EntityProvider {
-  protected readonly client: CustomObjectsApi;
+  protected readonly customObjectsClient: CustomObjectsApi;
+  protected readonly client: CoreV1Api;
   private readonly config: ProviderConfig;
   private readonly logger: Logger;
   private readonly scheduleFn: () => Promise<void>;
@@ -103,19 +108,25 @@ export class CAPIClusterProvider implements EntityProvider {
         options.schedule ??
         options.scheduler!.createScheduledTaskRunner(providerConfig.schedule!);
 
-      const client = clusterApiClient(providerConfig.hubClusterName, rootConfig, options.logger);
 
-      return new CAPIClusterProvider(providerConfig, client, options.logger, taskRunner);
+      const kubeConfig = getKubeConfigForCluster(providerConfig.hubClusterName, rootConfig, options.logger)
+      const customClient = kubeConfig.makeApiClient(CustomObjectsApi);
+      const k8sClient = kubeConfig.makeApiClient(CoreV1Api)
+
+
+      return new CAPIClusterProvider(providerConfig, customClient, k8sClient, options.logger, taskRunner);
     });
   }
 
   protected constructor(
     providerConfig: ProviderConfig,
-    client: CustomObjectsApi,
+    customClient: CustomObjectsApi,
+    client: CoreV1Api,
     logger: Logger,
     taskRunner: TaskRunner,
   ) {
     this.config = providerConfig;
+    this.customObjectsClient = customClient;
     this.client = client;
     this.logger = logger;
     this.scheduleFn = this.createScheduleFn(taskRunner);
@@ -163,14 +174,30 @@ export class CAPIClusterProvider implements EntityProvider {
       `Providing CAPI Cluster resources from cluster ${this.config.hubClusterName}`,
     );
 
-    const clusters = await getCAPIClusters(this.client);
+    const clusters = await getCAPIClusters(this.customObjectsClient);
+
+    const clusterKubeConfigs = clusters.items.map(async (cluster: Cluster): Promise<[string, KubeConfig | undefined]> => {
+      this.logger.info(`Getting KubeConfig Secret for ${clusterName(cluster)}`);
+      const kubeConfig = await getClusterKubeConfig(
+        this.client, `${cluster.metadata?.name}-kubeconfig`, cluster.metadata?.namespace || 'default', this.logger).catch(e => {
+          return undefined;
+        });
+
+      return [
+        clusterName(cluster),
+        kubeConfig,
+      ];
+    });
+
+    const kubeConfigs = new Map(await Promise.all(clusterKubeConfigs));
 
     const resources: ResourceEntity[] = (
       (clusters) as { items: Cluster[] }
     ).items.map((cluster: Cluster) => {
       const { description, lifecycle, owner, system, tags } = clusterAnnotations(cluster);
+      const clusterKubeConfig = kubeConfigs.get(clusterName(cluster));
 
-      return {
+      const resource: any = {
         kind: 'Resource',
         apiVersion: 'backstage.io/v1beta1',
         metadata: {
@@ -191,6 +218,14 @@ export class CAPIClusterProvider implements EntityProvider {
           system: system || this.config.defaults?.system,
         },
       };
+
+      if (clusterKubeConfig) {
+        resource.metadata.annotations[ANNOTATION_KUBERNETES_API_SERVER] = clusterKubeConfig?.clusters[0].server!;
+        resource.metadata.annotations[ANNOTATION_KUBERNETES_API_SERVER_CA] =  clusterKubeConfig?.clusters[0].caData!;
+        resource.metadata.annotations[ANNOTATION_KUBERNETES_AUTH_PROVIDER] = 'oidc';
+      }
+
+      return resource;
     });
 
     await this.connection.applyMutation({

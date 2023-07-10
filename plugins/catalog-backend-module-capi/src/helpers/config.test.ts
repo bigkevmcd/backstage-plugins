@@ -15,7 +15,7 @@
  */
 import { ConfigReader } from '@backstage/config';
 import {
-    getCAPIClusterFromKubernetesConfig,
+    getClusterConfigByName,
     readProviderConfigs,
 } from './config';
 
@@ -28,8 +28,8 @@ const createConfigParseResult = (data: object, prefix: string) => ({
     notifiedFilteredKeys: new Set(),
 });
 
-describe('getCAPIClusterFromKubernetesConfig', () => {
-    it('should get the correct hub cluster from multiple configured clusters', () => {
+describe('getClusterConfigByName', () => {
+    it('should get the correct cluster from multiple configured clusters', () => {
         const config = new ConfigReader({
             kubernetes: {
                 clusterLocatorMethods: [
@@ -51,7 +51,7 @@ describe('getCAPIClusterFromKubernetesConfig', () => {
             },
         });
 
-        const result = getCAPIClusterFromKubernetesConfig('cluster2', config);
+        const result = getClusterConfigByName('cluster2', config);
 
         expect(result).toEqual(
             createConfigParseResult(
@@ -63,7 +63,7 @@ describe('getCAPIClusterFromKubernetesConfig', () => {
         );
     });
 
-    it('should throw an error when the hub cluster is not found in kubernetes config', () => {
+    it('should throw an error when the cluster is not found in kubernetes config', () => {
         const config = new ConfigReader({
             kubernetes: {
                 clusterLocatorMethods: [
@@ -79,13 +79,13 @@ describe('getCAPIClusterFromKubernetesConfig', () => {
             },
         });
 
-        const result = () => getCAPIClusterFromKubernetesConfig('cluster2', config);
+        const result = () => getClusterConfigByName('cluster2', config);
 
-        expect(result).toThrow('CAPI hub cluster cluster2 not defined in kubernetes confi');
+        expect(result).toThrow('Cluster cluster2 not defined in kubernetes config');
     });
 
 
-    it('should throw an error when there are no cluster configured', () => {
+    it('should throw an error when there are no clusters configured', () => {
         const config = new ConfigReader({
             kubernetes: {
                 clusterLocatorMethods: [
@@ -96,15 +96,15 @@ describe('getCAPIClusterFromKubernetesConfig', () => {
             },
         });
 
-        const result = () => getCAPIClusterFromKubernetesConfig('cluster2', config);
+        const result = () => getClusterConfigByName('cluster2', config);
 
-        expect(result).toThrow('CAPI hub cluster cluster2 not defined in kubernetes config');
+        expect(result).toThrow('Cluster cluster2 not defined in kubernetes config');
     });
 
     it('should throw an error when there is no kubernetes config', () => {
         const config = new ConfigReader({});
 
-        const result = () => getCAPIClusterFromKubernetesConfig('test-cluster', config);
+        const result = () => getClusterConfigByName('test-cluster', config);
 
         expect(result).toThrow(
             "Missing required config value at 'kubernetes.clusterLocatorMethods'",
