@@ -113,7 +113,6 @@ catalog:
       defaults:
         clusterOwner: group:cluster-admins
         system: testing
-        lifecycle: dev
         tags:
           - imported
           - capi
@@ -131,7 +130,6 @@ metadata:
   name: test-cluster
   namespace: default
   annotations:
-    cluster.x-k8s.io/cluster-lifecycle: production
     cluster.x-k8s.io/cluster-owner: team:eu-cluster-admins
     cluster.x-k8s.io/cluster-description: This is the production cluster
     cluster.x-k8s.io/cluster-system: test-system

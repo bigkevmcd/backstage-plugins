@@ -29,7 +29,6 @@ import {
 } from '@backstage/catalog-model';
 import {
   ANNOTATION_CAPI_CLUSTER_DESCRIPTION,
-  ANNOTATION_CAPI_CLUSTER_LIFECYCLE,
   ANNOTATION_CAPI_CLUSTER_OWNER,
   ANNOTATION_CAPI_CLUSTER_SYSTEM,
   ANNOTATION_CAPI_CLUSTER_TAGS,
@@ -56,14 +55,12 @@ const clusterAnnotations = (cluster: Cluster): {
   system?: string
   tags?: string[],
 } => {
-  const lifecycle = cluster.metadata?.annotations?.[ANNOTATION_CAPI_CLUSTER_LIFECYCLE];
   const owner = cluster.metadata?.annotations?.[ANNOTATION_CAPI_CLUSTER_OWNER];
   const description = cluster.metadata?.annotations?.[ANNOTATION_CAPI_CLUSTER_DESCRIPTION];
   const system = cluster.metadata?.annotations?.[ANNOTATION_CAPI_CLUSTER_SYSTEM];
   const tags = cluster.metadata?.annotations?.[ANNOTATION_CAPI_CLUSTER_TAGS]?.split(',').map((s: string) => s.trim());
 
   return {
-    lifecycle,
     owner,
     description,
     system,
@@ -194,7 +191,7 @@ export class CAPIClusterProvider implements EntityProvider {
     const resources: ResourceEntity[] = (
       (clusters) as { items: Cluster[] }
     ).items.map((cluster: Cluster) => {
-      const { description, lifecycle, owner, system, tags } = clusterAnnotations(cluster);
+      const { description, owner, system, tags } = clusterAnnotations(cluster);
       const clusterKubeConfig = kubeConfigs.get(clusterName(cluster));
 
       const resource: any = {
@@ -208,23 +205,19 @@ export class CAPIClusterProvider implements EntityProvider {
             [ANNOTATION_LOCATION]: this.getProviderName(),
             [ANNOTATION_ORIGIN_LOCATION]: this.getProviderName(),
             [ANNOTATION_CAPI_PROVIDER]: capiClusterProvider(cluster),
-            [ANNOTATION_KUBERNETES_API_SERVER]: clusterKubeConfig?.clusters[0].server!,
-            [ANNOTATION_KUBERNETES_API_SERVER_CA]: clusterKubeConfig?.clusters[0].caData!,
-            [ANNOTATION_KUBERNETES_AUTH_PROVIDER]: 'oidc',
           },
           tags: tags || this.config.defaults?.tags,
         },
         spec: {
           owner: (owner || this.config.defaults?.clusterOwner) || 'guest',
           type: 'kubernetes-cluster',
-          lifecycle: lifecycle || this.config.defaults?.lifecycle,
           system: system || this.config.defaults?.system,
         },
       };
 
       if (clusterKubeConfig) {
         resource.metadata.annotations[ANNOTATION_KUBERNETES_API_SERVER] = clusterKubeConfig?.clusters[0].server!;
-        resource.metadata.annotations[ANNOTATION_KUBERNETES_API_SERVER_CA] =  clusterKubeConfig?.clusters[0].caData!;
+        resource.metadata.annotations[ANNOTATION_KUBERNETES_API_SERVER_CA] = clusterKubeConfig?.clusters[0].caData!;
         resource.metadata.annotations[ANNOTATION_KUBERNETES_AUTH_PROVIDER] = 'oidc';
       }
 

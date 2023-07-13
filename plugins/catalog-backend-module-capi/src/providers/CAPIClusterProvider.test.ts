@@ -28,7 +28,7 @@ import {
     ANNOTATION_KUBERNETES_AUTH_PROVIDER,
 } from '@backstage/plugin-kubernetes-common';
 import { CAPIClusterProvider } from './CAPIClusterProvider';
-import { ANNOTATION_CAPI_CLUSTER_DESCRIPTION, ANNOTATION_CAPI_CLUSTER_LIFECYCLE, ANNOTATION_CAPI_CLUSTER_OWNER, ANNOTATION_CAPI_CLUSTER_SYSTEM, ANNOTATION_CAPI_CLUSTER_TAGS, ANNOTATION_CAPI_PROVIDER } from '../constants';
+import { ANNOTATION_CAPI_CLUSTER_DESCRIPTION, ANNOTATION_CAPI_CLUSTER_OWNER, ANNOTATION_CAPI_CLUSTER_SYSTEM, ANNOTATION_CAPI_CLUSTER_TAGS, ANNOTATION_CAPI_PROVIDER } from '../constants';
 import nock from 'nock';
 import { CAPI_CLUSTER_SECRET_TYPE } from '../helpers';
 
@@ -151,7 +151,7 @@ describe('CAPIClusterProvider', () => {
                                 name: 'cluster1',
                                 namespace: 'clusters',
                                 annotations: {
-                                    [ANNOTATION_CAPI_CLUSTER_LIFECYCLE]: 'production',
+                                    [ANNOTATION_CAPI_CLUSTER_SYSTEM]: 'billing-system',
                                 }
                             },
                             spec: {
@@ -214,7 +214,7 @@ describe('CAPIClusterProvider', () => {
                             spec: {
                                 owner: 'group:test-team',
                                 type: 'kubernetes-cluster',
-                                lifecycle: 'production',
+                                system: 'billing-system',
                             },
                         },
                     },
@@ -236,7 +236,6 @@ describe('CAPIClusterProvider', () => {
                                 name: 'cluster2',
                                 namespace: 'clusters',
                                 annotations: {
-                                    [ANNOTATION_CAPI_CLUSTER_LIFECYCLE]: 'production',
                                     [ANNOTATION_CAPI_CLUSTER_OWNER]: 'group:pet-managers',
                                     [ANNOTATION_CAPI_CLUSTER_DESCRIPTION]: 'This is the production Cluster',
                                     [ANNOTATION_CAPI_CLUSTER_SYSTEM]: 'demo-system',
@@ -309,7 +308,6 @@ describe('CAPIClusterProvider', () => {
                             spec: {
                                 owner: 'group:pet-managers',
                                 type: 'kubernetes-cluster',
-                                lifecycle: 'production',
                                 system: 'demo-system',
                             },
                         },
@@ -391,7 +389,6 @@ describe('CAPIClusterProvider', () => {
                         },
                         defaults: {
                             clusterOwner: 'group:test-team',
-                            lifecycle: 'staging',
                             system: 'test-system',
                             tags: ['tag1', 'tag2', 'tag3'],
                         },
@@ -433,7 +430,6 @@ describe('CAPIClusterProvider', () => {
                         spec: {
                             owner: 'group:test-team',
                             type: 'kubernetes-cluster',
-                            lifecycle: 'staging',
                             system: 'test-system',
                         },
                     },
@@ -457,7 +453,7 @@ describe('CAPIClusterProvider', () => {
                                 name: 'cluster1',
                                 namespace: 'clusters',
                                 annotations: {
-                                    [ANNOTATION_CAPI_CLUSTER_LIFECYCLE]: 'production',
+                                    [ANNOTATION_CAPI_CLUSTER_OWNER]: 'group:production-admins',
                                 }
                             },
                             spec: {
@@ -504,9 +500,8 @@ describe('CAPIClusterProvider', () => {
                                 },
                             },
                             spec: {
-                                owner: 'group:test-team',
+                                owner: 'group:production-admins',
                                 type: 'kubernetes-cluster',
-                                lifecycle: 'production',
                             },
                         },
                     },

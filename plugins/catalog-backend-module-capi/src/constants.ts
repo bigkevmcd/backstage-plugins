@@ -18,7 +18,6 @@
 export const ANNOTATION_CAPI_PROVIDER = 'cluster.x-k8s.io/capi-provider';
 
 // The Provider will read these annotations off the CAPI Cluster
-export const ANNOTATION_CAPI_CLUSTER_LIFECYCLE = 'cluster.x-k8s.io/cluster-lifecycle';
 export const ANNOTATION_CAPI_CLUSTER_OWNER = 'cluster.x-k8s.io/cluster-owner';
 export const ANNOTATION_CAPI_CLUSTER_DESCRIPTION = 'cluster.x-k8s.io/cluster-description';
 export const ANNOTATION_CAPI_CLUSTER_SYSTEM = 'cluster.x-k8s.io/cluster-system';
