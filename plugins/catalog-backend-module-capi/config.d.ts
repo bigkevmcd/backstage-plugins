@@ -42,18 +42,18 @@ export interface Config {
         | Record<
             string,
             {
-            /**
-             * (Required) Default Cluster Owner if no Annotation is provided on the CAPI cluster.
-             */
-            defaultClusterOwner: string;
-            /**
-             * Name of the Cluster to query CAPI Clusters from.
-             */
-            hubClusterName: string;
-            /**
-             * (Optional) TaskScheduleDefinition for the refresh.
-             */
-            schedule?: TaskScheduleDefinitionConfig;
+              /**
+               * (Required) Default Cluster Owner if no Annotation is provided on the CAPI cluster.
+               */
+              defaultClusterOwner: string;
+              /**
+               * Name of the Cluster to query CAPI Clusters from.
+               */
+              hubClusterName: string;
+              /**
+               * (Optional) TaskScheduleDefinition for the refresh.
+               */
+              schedule?: TaskScheduleDefinitionConfig;
             }
           >;
     };

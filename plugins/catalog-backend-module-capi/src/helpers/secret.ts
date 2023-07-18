@@ -19,19 +19,23 @@ import { Logger } from 'winston';
 
 export const CAPI_CLUSTER_SECRET_TYPE = 'cluster.x-k8s.io/secret';
 
-const decodeBase64 = (str: string): string => Buffer.from(str, 'base64').toString('binary');
+const decodeBase64 = (str: string): string =>
+  Buffer.from(str, 'base64').toString('binary');
 
-export const decodeKubeConfigFromSecret = (secret: V1Secret, logger: Logger): KubeConfig => {
-    const decoded = decodeBase64(secret.data?.value ?? '');
+export const decodeKubeConfigFromSecret = (
+  secret: V1Secret,
+  logger: Logger,
+): KubeConfig => {
+  const decoded = decodeBase64(secret.data?.value ?? '');
 
-    const kc = new KubeConfig();
-    try {
-        kc.loadFromString(decoded);
-    } catch (err: any) {
-        logger.info(`caught error ${err}`)
-    }
+  const kc = new KubeConfig();
+  try {
+    kc.loadFromString(decoded);
+  } catch (err: any) {
+    logger.info(`caught error ${err}`);
+  }
 
-    return kc;
+  return kc;
 };
 
 /**
@@ -44,31 +48,42 @@ export const decodeKubeConfigFromSecret = (secret: V1Secret, logger: Logger): Ku
  * @param logger
  * @returns KubeConfig
  */
-export const getClusterKubeConfig = async (client: CoreV1Api, name: string, namespace: string, logger: Logger): Promise<KubeConfig> => {
-    const { body } = await client.readNamespacedSecret(name, namespace);
-    return decodeKubeConfigFromSecret(body, logger);
+export const getClusterKubeConfig = async (
+  client: CoreV1Api,
+  name: string,
+  namespace: string,
+  logger: Logger,
+): Promise<KubeConfig> => {
+  const { body } = await client.readNamespacedSecret(name, namespace);
+  return decodeKubeConfigFromSecret(body, logger);
 };
 
 /**
  * Query and decode the CAPI cluster secrets as KubeConfigs.
- * 
+ *
  * @public
- * @param client 
- * @param namespace 
- * @param logger 
- * @returns 
+ * @param client
+ * @param namespace
+ * @param logger
+ * @returns
  */
-export const getClusterKubeConfigs = async (client: CoreV1Api, namespace: string, logger: Logger): Promise<Map<string, KubeConfig>> => {
-    const { body } = await client.listNamespacedSecret(namespace);
-    const secrets = body.items.filter((secret: V1Secret) => (secret.type ?? '') === CAPI_CLUSTER_SECRET_TYPE);
+export const getClusterKubeConfigs = async (
+  client: CoreV1Api,
+  namespace: string,
+  logger: Logger,
+): Promise<Map<string, KubeConfig>> => {
+  const { body } = await client.listNamespacedSecret(namespace);
+  const secrets = body.items.filter(
+    (secret: V1Secret) => (secret.type ?? '') === CAPI_CLUSTER_SECRET_TYPE,
+  );
 
-    const kubeConfigs = new Map();
+  const kubeConfigs = new Map();
 
-    secrets.forEach((secret: V1Secret) => {
-        const decoded = decodeKubeConfigFromSecret(secret, logger);
+  secrets.forEach((secret: V1Secret) => {
+    const decoded = decodeKubeConfigFromSecret(secret, logger);
 
-        kubeConfigs.set((secret.metadata?.name ?? 'unknown'), decoded);
-    });
+    kubeConfigs.set(secret.metadata?.name ?? 'unknown', decoded);
+  });
 
-    return kubeConfigs;
+  return kubeConfigs;
 };

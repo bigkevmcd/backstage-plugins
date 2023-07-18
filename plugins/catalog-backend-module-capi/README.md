@@ -4,7 +4,6 @@ This is an extension module to the plugin-catalog-backend plugin, with an entity
 
 ![List of CAPI Clusters as Resourcess](./cluster_resources.png)
 
-
 ## Capabilities
 
 This plugin has the following capabilities:
@@ -91,11 +90,11 @@ catalog:
   providers:
     capi:
       eu-clusters:
-          hubClusterName: eu-cluster
-          defaultClusterOwner: group:eu-admins
+        hubClusterName: eu-cluster
+        defaultClusterOwner: group:eu-admins
       us-clusters:
-          hubClusterName: us-cluster
-          defaultClusterOwner: group:eu-admins
+        hubClusterName: us-cluster
+        defaultClusterOwner: group:eu-admins
 ```
 
 You can also provide defaults for fields in the Backstage entities:
@@ -139,7 +138,7 @@ metadata:
 spec:
   clusterNetwork:
     pods:
-      cidrBlocks: ["192.168.0.0/16"]
+      cidrBlocks: ['192.168.0.0/16']
   infrastructureRef:
     kind: AWSManagedCluster
     apiVersion: infrastructure.cluster.x-k8s.io/v1beta2

@@ -14,183 +14,179 @@
  * limitations under the License.
  */
 import { ConfigReader } from '@backstage/config';
-import {
-    getClusterConfigByName,
-    readProviderConfigs,
-} from './config';
+import { getClusterConfigByName, readProviderConfigs } from './config';
 
 const createConfigParseResult = (data: object, prefix: string) => ({
-    data: data,
-    context: 'mock-config',
-    prefix: prefix,
-    fallback: undefined,
-    filteredKeys: undefined,
-    notifiedFilteredKeys: new Set(),
+  data: data,
+  context: 'mock-config',
+  prefix: prefix,
+  fallback: undefined,
+  filteredKeys: undefined,
+  notifiedFilteredKeys: new Set(),
 });
 
 describe('getClusterConfigByName', () => {
-    it('should get the correct cluster from multiple configured clusters', () => {
-        const config = new ConfigReader({
-            kubernetes: {
-                clusterLocatorMethods: [
-                    {
-                        type: 'config',
-                        clusters: [
-                            {
-                                name: 'cluster1',
-                            },
-                            {
-                                name: 'cluster2',
-                            },
-                            {
-                                name: 'cluster3',
-                            },
-                        ],
-                    },
-                ],
-            },
-        });
-
-        const result = getClusterConfigByName('cluster2', config);
-
-        expect(result).toEqual(
-            createConfigParseResult(
-                {
-                    name: 'cluster2',
-                },
-                'kubernetes.clusterLocatorMethods[0].clusters[1]',
-            ),
-        );
+  it('should get the correct cluster from multiple configured clusters', () => {
+    const config = new ConfigReader({
+      kubernetes: {
+        clusterLocatorMethods: [
+          {
+            type: 'config',
+            clusters: [
+              {
+                name: 'cluster1',
+              },
+              {
+                name: 'cluster2',
+              },
+              {
+                name: 'cluster3',
+              },
+            ],
+          },
+        ],
+      },
     });
 
-    it('should throw an error when the cluster is not found in kubernetes config', () => {
-        const config = new ConfigReader({
-            kubernetes: {
-                clusterLocatorMethods: [
-                    {
-                        type: 'config',
-                        clusters: [
-                            {
-                                name: 'cluster4',
-                            },
-                        ],
-                    },
-                ],
-            },
-        });
+    const result = getClusterConfigByName('cluster2', config);
 
-        const result = () => getClusterConfigByName('cluster2', config);
+    expect(result).toEqual(
+      createConfigParseResult(
+        {
+          name: 'cluster2',
+        },
+        'kubernetes.clusterLocatorMethods[0].clusters[1]',
+      ),
+    );
+  });
 
-        expect(result).toThrow('Cluster cluster2 not defined in kubernetes config');
+  it('should throw an error when the cluster is not found in kubernetes config', () => {
+    const config = new ConfigReader({
+      kubernetes: {
+        clusterLocatorMethods: [
+          {
+            type: 'config',
+            clusters: [
+              {
+                name: 'cluster4',
+              },
+            ],
+          },
+        ],
+      },
     });
 
+    const result = () => getClusterConfigByName('cluster2', config);
 
-    it('should throw an error when there are no clusters configured', () => {
-        const config = new ConfigReader({
-            kubernetes: {
-                clusterLocatorMethods: [
-                    {
-                        type: 'config',
-                    },
-                ],
-            },
-        });
+    expect(result).toThrow('Cluster cluster2 not defined in kubernetes config');
+  });
 
-        const result = () => getClusterConfigByName('cluster2', config);
-
-        expect(result).toThrow('Cluster cluster2 not defined in kubernetes config');
+  it('should throw an error when there are no clusters configured', () => {
+    const config = new ConfigReader({
+      kubernetes: {
+        clusterLocatorMethods: [
+          {
+            type: 'config',
+          },
+        ],
+      },
     });
 
-    it('should throw an error when there is no kubernetes config', () => {
-        const config = new ConfigReader({});
+    const result = () => getClusterConfigByName('cluster2', config);
 
-        const result = () => getClusterConfigByName('test-cluster', config);
+    expect(result).toThrow('Cluster cluster2 not defined in kubernetes config');
+  });
 
-        expect(result).toThrow(
-            "Missing required config value at 'kubernetes.clusterLocatorMethods'",
-        );
-    });
+  it('should throw an error when there is no kubernetes config', () => {
+    const config = new ConfigReader({});
+
+    const result = () => getClusterConfigByName('test-cluster', config);
+
+    expect(result).toThrow(
+      "Missing required config value at 'kubernetes.clusterLocatorMethods'",
+    );
+  });
 });
 
 describe('readProviderConfigs', () => {
-    describe('when there is no configuration provided', () => {
-        it('reads no configuration', () => {
-            const providerConfigs = readProviderConfigs(new ConfigReader({}));
+  describe('when there is no configuration provided', () => {
+    it('reads no configuration', () => {
+      const providerConfigs = readProviderConfigs(new ConfigReader({}));
 
-            expect(providerConfigs).toHaveLength(0);
-        });
+      expect(providerConfigs).toHaveLength(0);
     });
+  });
 
-    describe('when a single configuration is provided', () => {
-        it('reads a single provider configuration', () => {
-            const config = new ConfigReader({
-                catalog: {
-                    providers: {
-                        capi: {
-                            hubClusterName: 'demo-cluster',
-                            defaults: {
-                                clusterOwner: 'group:team-lucky',
-                            },
-                        },
-                    },
-                },
-            });
+  describe('when a single configuration is provided', () => {
+    it('reads a single provider configuration', () => {
+      const config = new ConfigReader({
+        catalog: {
+          providers: {
+            capi: {
+              hubClusterName: 'demo-cluster',
+              defaults: {
+                clusterOwner: 'group:team-lucky',
+              },
+            },
+          },
+        },
+      });
 
-            const providerConfigs = readProviderConfigs(config);
+      const providerConfigs = readProviderConfigs(config);
 
-            expect(providerConfigs).toEqual([
-                {
-                    hubClusterName: 'demo-cluster',
-                    id: 'default',
-                    defaults: {
-                        clusterOwner: 'group:team-lucky',
-                    },
-                }
-            ]);
-        });
+      expect(providerConfigs).toEqual([
+        {
+          hubClusterName: 'demo-cluster',
+          id: 'default',
+          defaults: {
+            clusterOwner: 'group:team-lucky',
+          },
+        },
+      ]);
     });
+  });
 
-    describe('when multiple configurations are provided', () => {
-        it('reads multiple provider configurations', () => {
-            const config = new ConfigReader({
-                catalog: {
-                    providers: {
-                        capi: {
-                            default: {
-                                hubClusterName: 'default',
-                                defaults: {
-                                    clusterOwner: 'group:team-lucky',
-                                },
-                            },
-                            cluster1: {
-                                hubClusterName: 'eu-cluster',
-                                defaults: {
-                                    clusterOwner: 'group:team-notso',
-                                },
-                            },
-                        },
-                    },
+  describe('when multiple configurations are provided', () => {
+    it('reads multiple provider configurations', () => {
+      const config = new ConfigReader({
+        catalog: {
+          providers: {
+            capi: {
+              default: {
+                hubClusterName: 'default',
+                defaults: {
+                  clusterOwner: 'group:team-lucky',
                 },
-            });
-
-            const providerConfigs = readProviderConfigs(config);
-
-            expect(providerConfigs).toEqual([
-                {
-                    hubClusterName: 'default',
-                    id: 'default',
-                    defaults: {
-                        clusterOwner: 'group:team-lucky',
-                    },
+              },
+              cluster1: {
+                hubClusterName: 'eu-cluster',
+                defaults: {
+                  clusterOwner: 'group:team-notso',
                 },
-                {
-                    hubClusterName: 'eu-cluster',
-                    id: 'cluster1',
-                    defaults: {
-                        clusterOwner: 'group:team-notso',
-                    },
-                }
-            ]);
-        });
+              },
+            },
+          },
+        },
+      });
+
+      const providerConfigs = readProviderConfigs(config);
+
+      expect(providerConfigs).toEqual([
+        {
+          hubClusterName: 'default',
+          id: 'default',
+          defaults: {
+            clusterOwner: 'group:team-lucky',
+          },
+        },
+        {
+          hubClusterName: 'eu-cluster',
+          id: 'cluster1',
+          defaults: {
+            clusterOwner: 'group:team-notso',
+          },
+        },
+      ]);
     });
+  });
 });

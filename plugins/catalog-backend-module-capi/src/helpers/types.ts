@@ -20,20 +20,20 @@ export interface ObjectReference {
   kind: string;
   namespace?: string;
   name?: string;
-};
+}
 
 export interface Cluster extends KubernetesObject {
   spec: {
-    paused: boolean
-    controlPlaneRef?: ObjectReference
-    infrastructureRef?: ObjectReference
-  },
+    paused: boolean;
+    controlPlaneRef?: ObjectReference;
+    infrastructureRef?: ObjectReference;
+  };
   status?: {
-    phase?: string
-    infrastructureReady: boolean
-    controlPlaneReady: boolean
-  }
-};
+    phase?: string;
+    infrastructureReady: boolean;
+    controlPlaneReady: boolean;
+  };
+}
 
 export type ProviderDefaults = {
   clusterOwner?: string;

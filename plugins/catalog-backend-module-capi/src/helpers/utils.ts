@@ -16,21 +16,21 @@
 
 import http from 'http';
 
-export const kubeApiResponseHandler = <T extends Object> (
+export const kubeApiResponseHandler = <T extends Object>(
   call: Promise<{
-      response: http.IncomingMessage;
-      body: object;
-    }>,
-  ): Promise<T> => {
-    return call
-      .then(r => {
-        return r.body as T;
-      })
-      .catch(r => {
-        throw Object.assign(new Error(r.body.reason), {
-          statusCode: r.body.code,
-          name: r.body.reason,
-          ...r.body,
-        });
+    response: http.IncomingMessage;
+    body: object;
+  }>,
+): Promise<T> => {
+  return call
+    .then(r => {
+      return r.body as T;
+    })
+    .catch(r => {
+      throw Object.assign(new Error(r.body.reason), {
+        statusCode: r.body.code,
+        name: r.body.reason,
+        ...r.body,
       });
-  };
+    });
+};

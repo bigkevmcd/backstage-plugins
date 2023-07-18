@@ -15,13 +15,20 @@
  */
 
 import { Config } from '@backstage/config';
-import { CustomObjectsApi, KubeConfig, KubernetesListObject } from '@kubernetes/client-node';
+import {
+  CustomObjectsApi,
+  KubeConfig,
+  KubernetesListObject,
+} from '@kubernetes/client-node';
 import { Logger } from 'winston';
 import { getClusterConfigByName } from './config';
 import { Cluster } from './types';
 import { kubeApiResponseHandler } from './utils';
 
-const newKubeConfigFromConfig = (config: Config, logger: Logger): KubeConfig => {
+const newKubeConfigFromConfig = (
+  config: Config,
+  logger: Logger,
+): KubeConfig => {
   const clusterToken = config.getOptionalString('serviceAccountToken');
   const kubeConfig = new KubeConfig();
 
@@ -68,23 +75,23 @@ const newKubeConfigFromConfig = (config: Config, logger: Logger): KubeConfig => 
  * @returns KubeConfig usable to access the cluster
  */
 
-export const getKubeConfigForCluster = (name: string, rootConfig: Config, logger: Logger): KubeConfig => {
+export const getKubeConfigForCluster = (
+  name: string,
+  rootConfig: Config,
+  logger: Logger,
+): KubeConfig => {
   const clusterConfig = getClusterConfigByName(name, rootConfig);
 
   return newKubeConfigFromConfig(clusterConfig, logger);
 };
 
 /**
- * 
+ *
  * @param api Query the CAPI clusters using the provided Client.
- * @returns 
+ * @returns
  */
 export const getCAPIClusters = (api: CustomObjectsApi) => {
   return kubeApiResponseHandler<KubernetesListObject<Cluster>>(
-    api.listClusterCustomObject(
-      'cluster.x-k8s.io',
-      'v1beta1',
-      'clusters',
-    ),
+    api.listClusterCustomObject('cluster.x-k8s.io', 'v1beta1', 'clusters'),
   );
 };

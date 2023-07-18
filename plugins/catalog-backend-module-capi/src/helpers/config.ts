@@ -23,14 +23,14 @@ const DEFAULT_PROVIDER_ID = 'default';
 
 // Find the configuration for the named cluster in the set of Kubernetes
 // clusters declared in the system.
-export const getClusterConfigByName = (name: string, config: Config): Config => {
+export const getClusterConfigByName = (
+  name: string,
+  config: Config,
+): Config => {
   const cluster = config
     .getConfigArray(CLUSTERS_PATH)
     .flatMap(method => method.getOptionalConfigArray('clusters') || [])
-    .find(
-      listCluster =>
-        listCluster.getString('name') === name,
-    );
+    .find(listCluster => listCluster.getString('name') === name);
 
   if (!cluster) {
     throw new Error(`Cluster ${name} not defined in kubernetes config`);
@@ -54,13 +54,10 @@ const parseDefaults = (config?: Config): ProviderDefaults | undefined => {
     system,
     lifecycle,
     tags,
-  }
+  };
 };
 
-const readProviderConfig = (
-  id: string,
-  config: Config,
-): ProviderConfig => {
+const readProviderConfig = (id: string, config: Config): ProviderConfig => {
   const hubClusterName = config.getString('hubClusterName');
 
   const schedule = config.has('schedule')
@@ -77,9 +74,7 @@ const readProviderConfig = (
   };
 };
 
-export const readProviderConfigs = (
-  config: Config
-): ProviderConfig[] => {
+export const readProviderConfigs = (config: Config): ProviderConfig[] => {
   const providersConfig = config.getOptionalConfig('catalog.providers.capi');
   if (!providersConfig) {
     return [];
